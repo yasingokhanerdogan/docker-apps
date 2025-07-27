@@ -1,0 +1,75 @@
+services:
+  directus:
+    image: directus/directus:11.9.3
+    container_name: directus_app
+    restart: unless-stopped
+    ports:
+      - "8055:8055"
+    volumes:
+      - directus_database:/directus/database
+      - directus_uploads:/directus/uploads
+      - directus_extensions:/directus/extensions
+    environment:
+      # Security Keys (ÖNEMLİ: Bu değerleri değiştirin!)
+      SECRET: ${SECRET:-change-this-to-a-very-secure-random-secret-key-minimum-32-characters}
+      KEY: ${KEY:-another-secure-key-for-encryption-change-this-too}
+
+      # Admin User
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-SecurePassword123!ChangeThis}
+
+      # Database Connection (SQLite)
+      DB_CLIENT: sqlite3
+      DB_FILENAME: /directus/database/data.db
+
+      # Security Settings
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "true"
+      RATE_LIMITER_ENABLED: "true"
+      RATE_LIMITER_POINTS: 50
+      RATE_LIMITER_DURATION: 1
+
+      # Websockets
+      WEBSOCKETS_ENABLED: "true"
+
+      # Log Level
+      LOG_LEVEL: "info"
+
+      # Token Durations
+      ACCESS_TOKEN_TTL: "1d"
+      REFRESH_TOKEN_TTL: "7d"
+
+      # File Upload
+      MAX_PAYLOAD_SIZE: "100mb"
+
+      # Email Configuration (Optional)
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@example.com}
+      EMAIL_TRANSPORT: ${EMAIL_TRANSPORT:-sendmail}
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8055/server/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "0.5"
+
+# Persistent Volumes
+volumes:
+  directus_database:
+    name: directus_database
+  directus_uploads:
+    name: directus_uploads
+  directus_extensions:
+    name: directus_extensions
